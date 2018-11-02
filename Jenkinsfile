@@ -6,14 +6,13 @@ pipeline {
         stage("Parallel Stage") {
             parallel {
                 stage("Build / Test - JDK8") {
-                    agent { node { label: "linux" } }
+                    agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
                         // Report failures in the jenkins UI
                         junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        consoleParsers = [[parserName: 'Maven'], [parserName: 'JavaC']]
 
                         // Collect up the jacoco execution results (only on main build)
                         def jacocoExcludes =
@@ -38,42 +37,39 @@ pipeline {
                               invokerBuildDir: "**/target/its"])
 
                         // Report errors seen on console
-                        step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
+                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                     }
                 }
 
                 stage("Build / Test - JDK11") {
-                    agent { node { label: "linux" } }
+                    agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
                         mavenBuild("jdk11", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
                         junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        consoleParsers = [[parserName: 'Maven'], [parserName: 'JavaC']]
-                        step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
+                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                     }
                 }
 
                 stage("Build Javadoc") {
-                    agent { node { label: "linux" } }
+                    agent { node { label 'linux' } }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
                         junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        consoleParsers = [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]
-                        step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
+                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
                     }
                 }
 
                 stage("Build Compact3") {
-                    agent { node { label: "linux" } }
+                    agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
-                        consoleParsers = [[parserName: 'JavaC']]
-                        step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
+                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
                     }
                 }
             }
