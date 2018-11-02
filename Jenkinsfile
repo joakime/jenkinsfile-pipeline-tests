@@ -10,7 +10,7 @@ pipeline {
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
-                        mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
 
                         script {
                             // Report failures in the jenkins UI
@@ -49,7 +49,7 @@ pipeline {
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
-                        mavenBuild("jdk11", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        mavenBuild("jdk11", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
                         script {
                             junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
@@ -62,7 +62,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         checkout scm
-                        mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
+                        mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
                         }
@@ -74,7 +74,7 @@ pipeline {
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         checkout scm
-                        mavenBuild("jdk8", "/", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
+                        mavenBuild("jdk8", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
                         }
@@ -86,7 +86,7 @@ pipeline {
 }
 
 
-def mavenBuild(jdk, path, cmdline) {
+def mavenBuild(jdk, cmdline) {
     def mvnName = 'maven3.5'
     def localRepo = "${env.JENKINS_HOME}/${env.EXECUTOR_NUMBER}" // ".repository" //
     def settingsName = 'oss-settings.xml'
@@ -99,7 +99,7 @@ def mavenBuild(jdk, path, cmdline) {
         globalMavenSettingsConfig: settingsName,
         mavenOpts: mavenOpts,
         mavenLocalRepo: localRepo) {
-        sh "mvn -f $path $cmdline"
+        sh "mvn $cmdline"
     }
 }
 
