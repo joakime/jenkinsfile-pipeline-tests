@@ -9,7 +9,6 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        checkout scm
                         mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
 
                         script {
@@ -48,7 +47,6 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        checkout scm
                         mavenBuild("jdk11", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
                         script {
                             junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
@@ -61,7 +59,6 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
-                        checkout scm
                         mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
@@ -73,7 +70,6 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        checkout scm
                         mavenBuild("jdk8", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
