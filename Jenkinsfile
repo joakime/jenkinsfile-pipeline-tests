@@ -11,10 +11,10 @@ pipeline {
                     steps {
                         mavenBuild("jdk8", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-
-                        script {
-                            // Collect up the jacoco execution results (only on main build)
-                            def jacocoExcludes =
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+                        // Collect up the jacoco execution results (only on main build)
+                        jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                            exclusionPattern: [
                                 // build tools
                                 "**/org/eclipse/jetty/ant/**" + ",**/org/eclipse/jetty/maven/**" +
                                     ",**/org/eclipse/jetty/jspc/**" +
@@ -26,17 +26,13 @@ pipeline {
                                     ",**/org/eclipse/jetty/osgi/**" + ",**/org/eclipse/jetty/spring/**" +
                                     ",**/org/eclipse/jetty/http/spi/**" +
                                     // test classes
-                                    ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"
-                            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                                exclusionPattern: jacocoExcludes,
-                                execPattern: '**/target/jacoco.exec',
-                                classPattern: '**/target/classes',
-                                sourcePattern: '**/src/main/java'
+                                    ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"],
+                            execPattern: '**/target/jacoco.exec',
+                            classPattern: '**/target/classes',
+                            sourcePattern: '**/src/main/java'
+                        script {
                             step([$class         : 'MavenInvokerRecorder', reportsFilenamePattern: "**/target/invoker-reports/BUILD*.xml",
                                   invokerBuildDir: "**/target/its"])
-
-                            // Report errors seen on console
-                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                         }
                     }
                 }
@@ -47,7 +43,7 @@ pipeline {
                     steps {
                         mavenBuild("jdk11", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
 
 //                        warnings canComputeNew: false,
 //                            canResolveRelativePaths: false,
@@ -72,9 +68,7 @@ pipeline {
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
                         mavenBuild("jdk8", "javadoc:javadoc")
-                        script {
-                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
-                        }
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'Java']]
                     }
                 }
 
@@ -82,10 +76,8 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild("jdk8", "-Pcompact3 package")
-                        script {
-                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
-                        }
+                        mavenBuild("jdk8", "-Pcompact3 clean package")
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
                     }
                 }
             }
