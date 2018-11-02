@@ -14,21 +14,25 @@ pipeline {
 
                         script {
                             // Collect up the jacoco execution results (only on main build)
-                            def jacocoExcludes =
-                                // build tools
-                                "**/org/eclipse/jetty/ant/**" + ",**/org/eclipse/jetty/maven/**" +
-                                    ",**/org/eclipse/jetty/jspc/**" +
-                                    // example code / documentation
-                                    ",**/org/eclipse/jetty/embedded/**" + ",**/org/eclipse/jetty/asyncrest/**" +
-                                    ",**/org/eclipse/jetty/demo/**" +
-                                    // special environments / late integrations
-                                    ",**/org/eclipse/jetty/gcloud/**" + ",**/org/eclipse/jetty/infinispan/**" +
-                                    ",**/org/eclipse/jetty/osgi/**" + ",**/org/eclipse/jetty/spring/**" +
-                                    ",**/org/eclipse/jetty/http/spi/**" +
-                                    // test classes
-                                    ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"
                             jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                                exclusionPattern: jacocoExcludes,
+                                exclusionPattern: '' +
+                                    // build tools
+                                    '**/org/eclipse/jetty/ant/**' +
+                                    ',**/org/eclipse/jetty/maven/**' +
+                                    ',**/org/eclipse/jetty/jspc/**' +
+                                    // example code / documentation
+                                    ',**/org/eclipse/jetty/embedded/**' +
+                                    ',**/org/eclipse/jetty/asyncrest/**' +
+                                    ',**/org/eclipse/jetty/demo/**' +
+                                    // special environments / late integrations
+                                    ',**/org/eclipse/jetty/gcloud/**' +
+                                    ',**/org/eclipse/jetty/infinispan/**' +
+                                    ',**/org/eclipse/jetty/osgi/**' +
+                                    ',**/org/eclipse/jetty/spring/**' +
+                                    ',**/org/eclipse/jetty/http/spi/**' +
+                                    // test classes
+                                    ',**/org/eclipse/jetty/tests/**' +
+                                    ',**/org/eclipse/jetty/test/**',
                                 execPattern: '**/target/jacoco.exec',
                                 classPattern: '**/target/classes',
                                 sourcePattern: '**/src/main/java'
