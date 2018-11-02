@@ -3,8 +3,8 @@
 pipeline {
     agent any
     stages {
-        steps {
-            stage("Parallel Stage") {
+        stage("Parallel Stage") {
+            steps {
                 failfast true
                 parallel "jdk8": {
                     node("linux") {
