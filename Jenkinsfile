@@ -4,7 +4,7 @@ pipeline {
     agent any
     stages {
         stage("Parallel Stage") {
-            parallel "jdk8": {
+            parallel {
                 stage("Build / Test - JDK8") {
                     agent { node { label: "linux" } }
                     options { timeout(time: 120, unit: 'MINUTES') }
@@ -41,7 +41,7 @@ pipeline {
                         step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
                     }
                 }
-            }, "jdk11": {
+
                 stage("Build / Test - JDK11") {
                     agent { node { label: "linux" } }
                     options { timeout(time: 120, unit: 'MINUTES') }
@@ -53,7 +53,7 @@ pipeline {
                         step([$class: 'WarningsPublisher', consoleParsers: consoleParsers])
                     }
                 }
-            }, "javadoc": {
+
                 stage("Build Javadoc") {
                     agent { node { label: "linux" } }
                     options { timeout(time: 30, unit: 'MINUTES') }
@@ -66,7 +66,6 @@ pipeline {
                     }
                 }
 
-            }, "compact3": {
                 stage("Build Compact3") {
                     agent { node { label: "linux" } }
                     options { timeout(time: 120, unit: 'MINUTES') }
