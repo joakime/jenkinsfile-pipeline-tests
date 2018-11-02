@@ -3,52 +3,51 @@
 pipeline {
     agent any
     stages {
-        stage('Parallel Stage') {
+        stage("Parallel Stage") {
             parallel {
-                stage('Build / Test - JDK8') {
+                stage("Build / Test - JDK8") {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild('jdk8', 'install -Djetty.testtracker.log=true -Pmongodb')
+                        mavenBuild("jdk8", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
-                        // Collect up the jacoco execution results (only on main build)
-                        jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                            exclusionPattern: '' +
-                                // build tools
-                                '**/org/eclipse/jetty/ant/**' +
-                                ',**/org/eclipse/jetty/maven/**' +
-                                ',**/org/eclipse/jetty/jspc/**' +
-                                // example code / documentation
-                                ',**/org/eclipse/jetty/embedded/**' +
-                                ',**/org/eclipse/jetty/asyncrest/**' +
-                                ',**/org/eclipse/jetty/demo/**' +
-                                // special environments / late integrations
-                                ',**/org/eclipse/jetty/gcloud/**' +
-                                ',**/org/eclipse/jetty/infinispan/**' +
-                                ',**/org/eclipse/jetty/osgi/**' +
-                                ',**/org/eclipse/jetty/spring/**' +
-                                ',**/org/eclipse/jetty/http/spi/**' +
-                                // test classes
-                                ',**/org/eclipse/jetty/tests/**' +
-                                ',**/org/eclipse/jetty/test/**',
-                            execPattern: '**/target/jacoco.exec',
-                            classPattern: '**/target/classes',
-                            sourcePattern: '**/src/main/java'
+
                         script {
-                            step([$class         : 'MavenInvokerRecorder', reportsFilenamePattern: '**/target/invoker-reports/BUILD*.xml',
-                                  invokerBuildDir: '**/target/its'])
+                            // Collect up the jacoco execution results (only on main build)
+                            def jacocoExcludes =
+                                // build tools
+                                "**/org/eclipse/jetty/ant/**" + ",**/org/eclipse/jetty/maven/**" +
+                                    ",**/org/eclipse/jetty/jspc/**" +
+                                    // example code / documentation
+                                    ",**/org/eclipse/jetty/embedded/**" + ",**/org/eclipse/jetty/asyncrest/**" +
+                                    ",**/org/eclipse/jetty/demo/**" +
+                                    // special environments / late integrations
+                                    ",**/org/eclipse/jetty/gcloud/**" + ",**/org/eclipse/jetty/infinispan/**" +
+                                    ",**/org/eclipse/jetty/osgi/**" + ",**/org/eclipse/jetty/spring/**" +
+                                    ",**/org/eclipse/jetty/http/spi/**" +
+                                    // test classes
+                                    ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"
+                            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                                exclusionPattern: jacocoExcludes,
+                                execPattern: '**/target/jacoco.exec',
+                                classPattern: '**/target/classes',
+                                sourcePattern: '**/src/main/java'
+                            step([$class         : 'MavenInvokerRecorder', reportsFilenamePattern: "**/target/invoker-reports/BUILD*.xml",
+                                  invokerBuildDir: "**/target/its"])
+
+                            // Report errors seen on console
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                         }
                     }
                 }
 
-                stage('Build / Test - JDK11') {
+                stage("Build / Test - JDK11") {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild('jdk11', 'install -Djetty.testtracker.log=true -Pmongodb')
+                        mavenBuild("jdk11", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]
 
 //                        warnings canComputeNew: false,
 //                            canResolveRelativePaths: false,
@@ -68,21 +67,25 @@ pipeline {
                     }
                 }
 
-                stage('Build Javadoc') {
+                stage("Build Javadoc") {
                     agent { node { label 'linux' } }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
-                        mavenBuild('jdk8', 'javadoc:javadoc')
-                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'Java']]
+                        mavenBuild("jdk8", "javadoc:javadoc")
+                        script {
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
+                        }
                     }
                 }
 
-                stage('Build Compact3') {
+                stage("Build Compact3") {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild('jdk8', '-Pcompact3 clean package')
-                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+                        mavenBuild("jdk8", "-Pcompact3 package")
+                        script {
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
+                        }
                     }
                 }
             }
@@ -93,7 +96,7 @@ pipeline {
 
 def mavenBuild(jdk, cmdline) {
     def mvnName = 'maven3.5'
-    def localRepo = '${env.JENKINS_HOME}/${env.EXECUTOR_NUMBER}' // '.repository' //
+    def localRepo = "${env.JENKINS_HOME}/${env.EXECUTOR_NUMBER}" // ".repository" //
     def settingsName = 'oss-settings.xml'
     def mavenOpts = '-Xms1g -Xmx4g -Djava.awt.headless=true'
 
