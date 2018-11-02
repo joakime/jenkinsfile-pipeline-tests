@@ -77,8 +77,8 @@ pipeline {
     }
     post {
         always {
-            // junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-            junit '**/target/*-reports/TEST-*.xml'
+            junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+            // junit '**/target/*-reports/TEST-*.xml'
         }
     }
 }
