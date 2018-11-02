@@ -10,6 +10,7 @@ pipeline {
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
                         script {
                             // Collect up the jacoco execution results (only on main build)
@@ -45,6 +46,8 @@ pipeline {
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
                         mavenBuild("jdk11", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                         }
@@ -73,12 +76,6 @@ pipeline {
                     }
                 }
             }
-        }
-    }
-    post {
-        always {
-            junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-            // junit '**/target/*-reports/TEST-*.xml'
         }
     }
 }
