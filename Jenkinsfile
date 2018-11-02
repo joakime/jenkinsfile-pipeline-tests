@@ -9,7 +9,7 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        mavenBuild("jdk8", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
                         script {
@@ -45,7 +45,7 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild("jdk11", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
+                        mavenBuild("jdk11", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
                         script {
@@ -58,7 +58,7 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 30, unit: 'MINUTES') }
                     steps {
-                        mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
+                        mavenBuild("jdk8", "javadoc:javadoc")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
                         }
@@ -69,7 +69,7 @@ pipeline {
                     agent { node { label 'linux' } }
                     options { timeout(time: 120, unit: 'MINUTES') }
                     steps {
-                        mavenBuild("jdk8", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
+                        mavenBuild("jdk8", "-Pcompact3 package")
                         script {
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
                         }
@@ -94,7 +94,8 @@ def mavenBuild(jdk, cmdline) {
         globalMavenSettingsConfig: settingsName,
         mavenOpts: mavenOpts,
         mavenLocalRepo: localRepo) {
-        sh "mvn $cmdline"
+        // Some common Maven command line + provided command line
+        sh "mvn -V -B -T6 -e -Dmaven.test.failure.ignore=true $cmdline -Dunix.socket.tmp=" + env.JENKINS_HOME
     }
 }
 
