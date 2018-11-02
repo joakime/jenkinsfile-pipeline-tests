@@ -47,10 +47,23 @@ pipeline {
                     steps {
                         mavenBuild("jdk11", "install -Djetty.testtracker.log=true -Pmongodb")
                         junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]
 
-                        script {
-                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
-                        }
+//                        warnings canComputeNew: false,
+//                            canResolveRelativePaths: false,
+//                            categoriesPattern: '',
+//                            consoleParsers: [[parserName: 'Maven']],
+//                            defaultEncoding: '',
+//                            excludePattern: '',
+//                            healthy: '',
+//                            includePattern: '',
+//                            messagesPattern: '',
+//                            parserConfigurations: [[parserName: 'Go Lint', pattern: '**/report.xml']],
+//                            unHealthy: ''
+//
+//                        script {
+//                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
+//                        }
                     }
                 }
 
