@@ -99,13 +99,13 @@ def mavenBuild(jdk, cmdline) {
 
     withMaven(
         maven: mvnName,
-        jdk: '$jdk',
+        jdk: "$jdk",
         publisherStrategy: 'EXPLICIT',
         globalMavenSettingsConfig: settingsName,
         mavenOpts: mavenOpts,
         mavenLocalRepo: localRepo) {
         // Some common Maven command line + provided command line
-        sh 'mvn -V -B -T6 -e -Dmaven.test.failure.ignore=true $cmdline -Dunix.socket.tmp=' + env.JENKINS_HOME
+        sh "mvn -V -B -T6 -e -Dmaven.test.failure.ignore=true $cmdline -Dunix.socket.tmp=" + env.JENKINS_HOME
     }
 }
 
