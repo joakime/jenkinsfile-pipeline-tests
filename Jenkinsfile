@@ -11,33 +11,36 @@ pipeline {
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
-                        // Report failures in the jenkins UI
-                        junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
-                        // Collect up the jacoco execution results (only on main build)
-                        def jacocoExcludes =
-                            // build tools
-                            "**/org/eclipse/jetty/ant/**" + ",**/org/eclipse/jetty/maven/**" +
-                                ",**/org/eclipse/jetty/jspc/**" +
-                                // example code / documentation
-                                ",**/org/eclipse/jetty/embedded/**" + ",**/org/eclipse/jetty/asyncrest/**" +
-                                ",**/org/eclipse/jetty/demo/**" +
-                                // special environments / late integrations
-                                ",**/org/eclipse/jetty/gcloud/**" + ",**/org/eclipse/jetty/infinispan/**" +
-                                ",**/org/eclipse/jetty/osgi/**" + ",**/org/eclipse/jetty/spring/**" +
-                                ",**/org/eclipse/jetty/http/spi/**" +
-                                // test classes
-                                ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"
-                        jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                            exclusionPattern: jacocoExcludes,
-                            execPattern: '**/target/jacoco.exec',
-                            classPattern: '**/target/classes',
-                            sourcePattern: '**/src/main/java'
-                        step([$class         : 'MavenInvokerRecorder', reportsFilenamePattern: "**/target/invoker-reports/BUILD*.xml",
-                              invokerBuildDir: "**/target/its"])
+                        script {
+                            // Report failures in the jenkins UI
+                            junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
-                        // Report errors seen on console
-                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
+                            // Collect up the jacoco execution results (only on main build)
+                            def jacocoExcludes =
+                                // build tools
+                                "**/org/eclipse/jetty/ant/**" + ",**/org/eclipse/jetty/maven/**" +
+                                    ",**/org/eclipse/jetty/jspc/**" +
+                                    // example code / documentation
+                                    ",**/org/eclipse/jetty/embedded/**" + ",**/org/eclipse/jetty/asyncrest/**" +
+                                    ",**/org/eclipse/jetty/demo/**" +
+                                    // special environments / late integrations
+                                    ",**/org/eclipse/jetty/gcloud/**" + ",**/org/eclipse/jetty/infinispan/**" +
+                                    ",**/org/eclipse/jetty/osgi/**" + ",**/org/eclipse/jetty/spring/**" +
+                                    ",**/org/eclipse/jetty/http/spi/**" +
+                                    // test classes
+                                    ",**/org/eclipse/jetty/tests/**" + ",**/org/eclipse/jetty/test/**"
+                            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                                exclusionPattern: jacocoExcludes,
+                                execPattern: '**/target/jacoco.exec',
+                                classPattern: '**/target/classes',
+                                sourcePattern: '**/src/main/java'
+                            step([$class         : 'MavenInvokerRecorder', reportsFilenamePattern: "**/target/invoker-reports/BUILD*.xml",
+                                  invokerBuildDir: "**/target/its"])
+
+                            // Report errors seen on console
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
+                        }
                     }
                 }
 
@@ -47,8 +50,10 @@ pipeline {
                     steps {
                         checkout scm
                         mavenBuild("jdk11", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
-                        junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
+                        script {
+                            junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
+                        }
                     }
                 }
 
@@ -58,8 +63,9 @@ pipeline {
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -T6 -e -Dmaven.test.failure.ignore=false javadoc:javadoc")
-                        junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
+                        script {
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaDoc'], [parserName: 'JavaC']]])
+                        }
                     }
                 }
 
@@ -69,7 +75,9 @@ pipeline {
                     steps {
                         checkout scm
                         mavenBuild("jdk8", "/", "-V -B -e -Pcompact3 -Dmaven.test.failure.ignore=false package")
-                        step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
+                        script {
+                            step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'JavaC']]])
+                        }
                     }
                 }
             }
