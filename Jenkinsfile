@@ -12,9 +12,6 @@ pipeline {
                         mavenBuild("jdk8", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
 
                         script {
-                            // Report failures in the jenkins UI
-                            junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
-
                             // Collect up the jacoco execution results (only on main build)
                             def jacocoExcludes =
                                 // build tools
@@ -49,7 +46,6 @@ pipeline {
                     steps {
                         mavenBuild("jdk11", "-V -B -T6 -e -Dmaven.test.failure.ignore=true install -Djetty.testtracker.log=true -Pmongodb -Dunix.socket.tmp=" + env.JENKINS_HOME)
                         script {
-                            junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
                             step([$class: 'WarningsPublisher', consoleParsers: [[parserName: 'Maven'], [parserName: 'JavaC']]])
                         }
                     }
@@ -77,6 +73,12 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            // junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+            junit '**/target/*-reports/TEST-*.xml'
         }
     }
 }
