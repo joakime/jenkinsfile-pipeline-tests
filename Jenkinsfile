@@ -53,6 +53,26 @@ pipeline {
                     }
                 }
 
+                stage("Build / Test - JDK12") {
+                    agent { node { label 'linux' } }
+                    options { timeout(time: 120, unit: 'MINUTES') }
+                    steps {
+                        mavenBuild("jdk12", "install -Djetty.testtracker.log=true -Pmongodb")
+                        junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+                    }
+                }
+
+                stage("Build / Test - JDK13") {
+                    agent { node { label 'linux' } }
+                    options { timeout(time: 120, unit: 'MINUTES') }
+                    steps {
+                        mavenBuild("jdk13", "install -Djetty.testtracker.log=true -Pmongodb")
+                        junit '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
+                        warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+                    }
+                }
+
                 stage("Build Javadoc") {
                     agent { node { label 'linux' } }
                     options { timeout(time: 30, unit: 'MINUTES') }
